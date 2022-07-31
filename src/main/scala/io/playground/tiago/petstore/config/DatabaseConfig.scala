@@ -2,7 +2,9 @@ package io.playground.tiago.petstore.config
 
 import cats.syntax.functor._
 import cats.effect.{Async, Blocker, ContextShift, Resource, Sync}
+
 import doobie.hikari.HikariTransactor
+
 import org.flywaydb.core.Flyway
 
 import scala.concurrent.ExecutionContext
