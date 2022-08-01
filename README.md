@@ -25,11 +25,11 @@ Out on the edges we see Infrastructure and Server (we could also add Tests and U
 
 ## Reader, algebra and interpreter
 
-A module, as defined in a functional domain model, is a collection of functions that operates on a set of types and honor a set of invariants known as the algebra of the module. In mathematical terms, this is known as the algebra of the module.
+A module, as defined in a functional domain model, is a collection of functions that operates on a set of types and honor a set of invariants known (in mathematical terms) as the algebra of the module.
 
 In this case, the algebra is our published contract of the domain that we are modeling. This contract exposes the operations related to our domain model.
 
-As our algebra is a contract, it is not a concrete implementation, a truly advantage of that fact is that we can create different implementations of the same contract. That is, we need to give an implementation to the operations of our domain and we can do it depending on the context. So for each algebraic contract we have a service and JDBC interpreter that contain implementation details for that specific domain model.
+As our algebra is a contract, it is not a concrete implementation, an advantage of that fact is that we can create different implementations of the same contract. That is, we need to give an implementation to the operations of our domain and we can do it depending on the context. So for each algebraic contract we have a service and JDBC interpreter that contain implementation details for that specific domain model.
 
 ### Project Structure
 
@@ -91,7 +91,7 @@ Inside of the `domain`, we have:
 
 #### The infrastructure package 
 
-The `infrastructure` package The infrastructure package is where the ugliness lives. It has HTTP things, JDBC things, and the like.
+The `infrastructure` package is where the ugliness lives. It has HTTP things, JDBC things, and the like.
 
 1. `endpoint` - contains the HTTP endpoints that we surface via http4s. You will also typically see JSON things in here via circe
 
