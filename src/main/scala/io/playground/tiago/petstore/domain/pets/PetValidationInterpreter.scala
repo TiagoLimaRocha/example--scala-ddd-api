@@ -10,11 +10,11 @@ import cats.data.EitherT
 import cats.syntax.all._
 
 class PetValidationInterpreter[F[_]: Applicative](
-    repo: PetRepositoryAlgebra[F]
+    repository: PetRepositoryAlgebra[F]
 ) extends PetValidationAlgebra[F] {
   def doesNotExist(pet: Pet): EitherT[F, PetAlreadyExistsError, Unit] =
     EitherT {
-      repo.getByNameAndCategory(pet.name, pet.category).map { matches =>
+      repository.getByNameAndCategory(pet.name, pet.category).map { matches =>
         if (matches.forall(possibleMatch => possibleMatch.bio != pet.bio)) {
           Right(())
         } else {
@@ -27,7 +27,7 @@ class PetValidationInterpreter[F[_]: Applicative](
     EitherT {
       petId match {
         case Some(id) =>
-          repo.get(id).map {
+          repository.get(id).map {
             case Some(_) => Right(())
             case None    => Left(PetNotFoundError)
           }
@@ -40,7 +40,7 @@ class PetValidationInterpreter[F[_]: Applicative](
 
 object PetValidationInterpreter {
   def apply[F[_]: Applicative](
-      repo: PetRepositoryAlgebra[F]
+      repository: PetRepositoryAlgebra[F]
   ): PetValidationAlgebra[F] =
-    new PetValidationInterpreter[F](repo)
+    new PetValidationInterpreter[F](repository)
 }
