@@ -2,11 +2,13 @@ package io.playground.tiago.petstore
 
 import io.playground.tiago.petstore.config._
 import io.playground.tiago.petstore.domain.users._
-import io.playground.tiago.petstore.domain.authentication.Auth
+import io.playground.tiago.petstore.domain.pets._
 import io.playground.tiago.petstore.infrastructure.endpoint._
+import io.playground.tiago.petstore.domain.authentication.Auth
 import io.playground.tiago.petstore.infrastructure.repository.doobie.{
   DoobieAuthRepositoryInterpreter,
-  DoobieUserRepositoryInterpreter
+  DoobieUserRepositoryInterpreter,
+  DoobiePetRepositoryInterpreter
 }
 
 import cats.effect._
@@ -47,6 +49,10 @@ object Server extends IOApp {
       userValidation = UserValidationInterpreter[F](userRepo)
       userService = UserService[F](userRepo, userValidation)
 
+      petRepo = DoobiePetRepositoryInterpreter[F](xa)
+      petValidation = PetValidationInterpreter[F](petRepo)
+      petService = PetService[F](petRepo, petValidation)
+
       authenticator = Auth.jwtAuthenticator[F, HMACSHA256](
         key,
         authRepo,
@@ -61,7 +67,8 @@ object Server extends IOApp {
             userService,
             BCrypt.syncPasswordHasher[F],
             routeAuth
-          )
+          ),
+        "/pets" -> PetEndpoints.endpoints[F, HMACSHA256](petService, routeAuth)
       ).orNotFound
 
       _ <- Resource.eval(DatabaseConfig.initializeDb(conf.db))
