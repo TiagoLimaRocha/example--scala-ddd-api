@@ -70,13 +70,25 @@ class DoobieAuthRepositoryInterpreter[F[_]: Bracket[*[_], Throwable], A](
     s: JWSMacCV[MacErrorM, A]
 ) extends BackingStore[F, SecureRandomId, AugmentedJWT[A, Long]] {
   override def put(jwt: AugmentedJWT[A, Long]): F[AugmentedJWT[A, Long]] =
-    AuthSQL.insert(jwt).run.transact(xa).as(jwt)
+    AuthSQL
+      .insert(jwt)
+      .run
+      .transact(xa)
+      .as(jwt)
 
   override def update(jwt: AugmentedJWT[A, Long]): F[AugmentedJWT[A, Long]] =
-    AuthSQL.update(jwt).run.transact(xa).as(jwt)
+    AuthSQL
+      .update(jwt)
+      .run
+      .transact(xa)
+      .as(jwt)
 
   override def delete(id: SecureRandomId): F[Unit] =
-    AuthSQL.delete(id).run.transact(xa).void
+    AuthSQL
+      .delete(id)
+      .run
+      .transact(xa)
+      .void
 
   override def get(id: SecureRandomId): OptionT[F, AugmentedJWT[A, Long]] =
     OptionT(AuthSQL.select(id).option.transact(xa)).semiflatMap {

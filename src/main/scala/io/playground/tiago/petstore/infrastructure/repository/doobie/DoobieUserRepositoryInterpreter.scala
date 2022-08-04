@@ -23,7 +23,7 @@ private object UserSQL {
   implicit val roleMeta: Meta[Role] =
     Meta[String].imap(decode[Role](_).leftMap(throw _).merge)(_.asJson.toString)
 
-  def create(user: User): Update0 = sql"""
+  def insert(user: User): Update0 = sql"""
     INSERT INTO USERS 
       (
         USER_NAME, 
@@ -60,15 +60,15 @@ private object UserSQL {
     DELETE FROM USERS WHERE ID = $userId
   """.update
 
-  def get(userId: Long): Query0[User] = sql"""
+  def select(userId: Long): Query0[User] = sql"""
     SELECT * FROM USERS WHERE ID = $userId
   """.query
 
-  def getMany: Query0[User] = sql"""
+  def selectAll: Query0[User] = sql"""
     SELECT * FROM USERS
   """.query
 
-  def getByName(userName: String): Query0[User] = sql"""
+  def selectByName(userName: String): Query0[User] = sql"""
     SELECT * FROM USERS WHERE USER_NAME = $userName
   """.query[User]
 }
@@ -80,33 +80,52 @@ class DoobieUserRepositoryInterpreter[F[_]: Bracket[*[_], Throwable]](
 
   def create(user: User): F[User] =
     UserSQL
-      .create(user)
+      .insert(user)
       .withUniqueGeneratedKeys[Long]("ID")
       .map(id => user.copy(id = id.some))
       .transact(xa)
 
   def update(user: User): OptionT[F, User] =
-    OptionT.fromOption[F](user.id).semiflatMap { id =>
-      UserSQL.update(user, id).run.transact(xa).as(user)
-    }
+    OptionT
+      .fromOption[F](user.id)
+      .semiflatMap(id =>
+        UserSQL
+          .update(user, id)
+          .run
+          .transact(xa)
+          .as(user)
+      )
 
   def get(userId: Long): OptionT[F, User] = OptionT(
-    UserSQL.get(userId).option.transact(xa)
+    UserSQL.select(userId).option.transact(xa)
   )
 
   def getByName(userName: String): OptionT[F, User] =
-    OptionT(UserSQL.getByName(userName).option.transact(xa))
+    OptionT(
+      UserSQL
+        .selectByName(userName)
+        .option
+        .transact(xa)
+    )
 
   def delete(userId: Long): OptionT[F, User] =
     get(userId).semiflatMap(user =>
-      UserSQL.delete(userId).run.transact(xa).as(user)
+      UserSQL
+        .delete(userId)
+        .run
+        .transact(xa)
+        .as(user)
     )
 
   def deleteByName(userName: String): OptionT[F, User] =
-    getByName(userName).mapFilter(_.id).flatMap(delete)
+    getByName(userName)
+      .mapFilter(_.id)
+      .flatMap(delete)
 
   def list(pageSize: Int, offset: Int): F[List[User]] =
-    paginate(pageSize, offset)(UserSQL.getMany).to[List].transact(xa)
+    paginate(pageSize, offset)(UserSQL.selectAll)
+      .to[List]
+      .transact(xa)
 }
 
 object DoobieUserRepositoryInterpreter {
