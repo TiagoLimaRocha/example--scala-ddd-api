@@ -79,7 +79,7 @@ private object PetSQL {
 
   def selectAll: Query0[Pet] = sql"""
    SELECT * FROM PET ORDER BY NAME
-  """.query
+  """.query[Pet]
 }
 
 class DoobiePetRepositoryInterpreter[F[_]: Bracket[*[_], Throwable]](
